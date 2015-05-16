@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+  	xmlns:composite="http://java.sun.com/jsf/composite"
+  	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <title>This content will not be displayed</title>
+    </h:head>
+    <h:body>
+        <composite:interface componentType="alfa.ItemPanel">
+            <composite:attribute name="rule_component" required="true"/>
+        </composite:interface>
+
+        <composite:implementation>
+        	<p>#{cc.attrs.rule_component.thing.thingType.description}</p>
+        	
+        	<!-- EVENT -->
+			<p:outputPanel rendered="#{cc.attrs.rule_component.event}">
+            	<p:dataList value="#{cc.attrs.rule_component.events}" 
+            			var="ev" emptyMessage="This thing can't be an event">
+            		<p:outputPanel rendered="#{ev.channel.itemType == 'Switch'}">
+	            		<h:outputText value="#{ev.channel.configuration.description}"/>
+            		</p:outputPanel>
+            		<p:outputPanel rendered="#{ev.channel.itemType == 'Number'}">
+            			<p:selectBooleanButton offLabel="rises above" onLabel="drops below"
+            					value="#{ev.valueIsGreater}">
+            					<p:ajax />
+            			</p:selectBooleanButton>
+	            		<p:inputText value="#{ev.threshold}">
+	            			<p:ajax event="keyup" />
+	            		</p:inputText>
+            		</p:outputPanel>
+            		<p:outputPanel rendered="#{ev.channel.itemType == 'Contact'}">
+            			<p:selectOneMenu value="#{ev.triggerOnState}">
+            				<f:selectItem itemLabel="Any" itemValue="ANY" />
+            				<f:selectItem itemLabel="Open" itemValue="OPEN"/>
+            				<f:selectItem itemLabel="Closed" itemValue="CLOSED"/>
+            				<p:ajax/>
+            			</p:selectOneMenu>
+            		</p:outputPanel>
+            	</p:dataList>
+				<div class="operator_outer"><div class="operator_inner">
+				<span class="fa fa-long-arrow-up"></span>
+				OR
+				<span class="fa fa-long-arrow-down"></span>
+				</div></div>
+			</p:outputPanel>
+             
+            <!-- CONDITION -->
+            <p:outputPanel rendered="#{cc.attrs.rule_component.condition}">
+            	<p:dataList value="#{cc.attrs.rule_component.conditions}" 
+            			var="cond" emptyMessage="This thing can't be a condition">
+            		<p:outputPanel rendered="#{cond.channel.itemType == 'Number'}">
+            			If
+	            		<p:outputLabel value="#{cond.channel.configuration.label}" for="minCheckbox"/>
+	            		is
+	            		<p:panel>
+	            		<p:selectBooleanCheckbox id="minCheckbox" value="#{cond.enableMin}" 
+	            			itemLabel="Greater than">
+	            			<p:ajax update="@parent" />
+            			</p:selectBooleanCheckbox>
+	            		<p:inputText value="#{cond.minValue}" disabled="#{! cond.enableMin}">
+	            			<p:ajax event="keyup" />
+	            		</p:inputText>
+	            		</p:panel>
+	            		<p:panel>
+	            		<p:selectBooleanCheckbox id="maxCheckbox" value="#{cond.enableMax}" 
+	            			itemLabel="Less than">
+	            			<p:ajax update="@parent" />
+	            		</p:selectBooleanCheckbox>
+	            		<p:inputText value="#{cond.maxValue}" disabled="#{! cond.enableMax}">
+	            			<p:ajax event="keyup"/>
+	            		</p:inputText>
+	            		</p:panel>
+            		</p:outputPanel><p:outputPanel rendered="#{cond.channel.itemType == 'Switch' or cond.channel.itemType == 'Contact'}">
+	            		If
+	            		<p:outputLabel value="#{cond.channel.configuration.label}" />
+	            		is
+	            		<p:selectOneRadio value="#{cond.switchState}" itemLabel="#{cond.channel.linkedItemObjects[0].label}">
+	            			<f:selectItem itemLabel="#{cond.onStateLabel}" itemValue="true" />
+	            			<f:selectItem itemLabel="#{cond.offStateLabel}" itemValue="false" />
+	            			<p:ajax />
+						</p:selectOneRadio>
+            		</p:outputPanel>
+            	</p:dataList>
+				<div class="operator_outer"><div class="operator_inner">
+				<span class="fa fa-long-arrow-up"></span>
+				AND
+				<span class="fa fa-long-arrow-down"></span>
+				</div></div>
+            </p:outputPanel>
+             
+            <!-- ACTION -->
+            <p:outputPanel rendered="#{cc.attrs.rule_component.action}">
+            	<p:dataList value="#{cc.attrs.rule_component.actions}" var="action"
+            			itemType="none" emptyMessage="No actions available">
+            		<p:outputLabel value="#{action.channel.configuration.label}"/>
+            		<p:outputPanel rendered="#{action.channel.itemType == 'Switch'}">
+            		<p:inputSwitch value="#{action.value}" disabled="#{action.toggle}"
+            			id="that">
+            			<p:ajax />
+           			</p:inputSwitch>
+           			<br/>
+           			<p:outputLabel for="toggle" value="Toggle(On/Off) "/>
+           			<p:selectBooleanCheckbox id="toggle"
+           				rendered="#{action.channel.itemType == 'Switch'}" 
+            			value="#{action.toggle}">
+            			<p:ajax update="@this that" />
+           			</p:selectBooleanCheckbox>
+           			</p:outputPanel>
+            		<p:outputPanel rendered="#{action.channel.itemType == 'Player'}">
+            		
+            		<p:selectOneRadio value="#{action.command}" columns="2" layout="grid">
+            			<f:selectItem itemLabel="Play" itemValue="PLAY"/>
+            			<f:selectItem itemLabel="Pause" itemValue="PAUSE"/>
+            			<f:selectItem itemLabel="Next" itemValue="NEXT"/>
+            			<f:selectItem itemLabel="Previous" itemValue="PREVIOUS"/>
+            			<f:selectItem itemLabel="Pause/play" itemValue="TOGGLE"/>
+            		</p:selectOneRadio>
+            		
+           			</p:outputPanel>
+            		<p:outputPanel rendered="#{action.channel.itemType == 'Color'}">
+            		
+            			<p:selectBooleanCheckbox value="#{action.setOnOff}" itemLabel="Set on/off">
+            				<p:ajax update="power"/>
+            			</p:selectBooleanCheckbox>
+            			<p:inputSwitch value="#{action.power}" itemLabel="Power"
+            					id="power" disabled="#{not action.setOnOff}">
+            					<p:ajax/>
+         				</p:inputSwitch>
+            			<br/>
+            			<p:selectBooleanCheckbox value="#{action.setToggle}" itemLabel="Toggle on/off"/>
+            			<br/>
+            			<p:fieldset style="margin-bottom:20px">
+            			<p:selectBooleanCheckbox value="#{action.setBrightness}" 
+            					itemLabel="Set brightness">
+            				<p:ajax />
+            			</p:selectBooleanCheckbox>
+	            			<p:slider for="brightness" id="slider" style="width: 100%">
+					        		<p:ajax event="slideEnd" process="brightness"/>
+	            	        </p:slider>
+	            	        <p:inputText id="brightness" value="#{action.brightness}" style="width: 30%;" />%
+            			</p:fieldset>
+            			<p:selectBooleanCheckbox value="#{action.setColor}" itemLabel="Set color">
+            				<p:ajax update="color"/>
+            			</p:selectBooleanCheckbox>
+            			<p:colorPicker mode="popup" value="#{action.color}" id="color" >
+            			</p:colorPicker>
+            			<br/>
+            			<p:fieldset style="margin-bottom:20px">
+            			<p:selectBooleanCheckbox value="#{action.setIncreaseDecrease}" itemLabel="Increase/decrease brightness)">
+            				<p:ajax update="incdec"/>
+            			</p:selectBooleanCheckbox>
+            			<p:selectOneRadio value="#{action.increase}" id="incdec">
+            				<f:selectItem itemLabel="Increase" itemValue="true"/>
+            				<f:selectItem itemLabel="Decrease" itemValue="false"/>
+            			</p:selectOneRadio>
+            			</p:fieldset>
+            	</p:outputPanel>
+            	</p:dataList>
+				<div class="operator_outer"><div class="operator_inner">
+				<span class="fa fa-long-arrow-up"></span>
+				AND
+				<span class="fa fa-long-arrow-down"></span>
+				</div></div>
+            </p:outputPanel>
+            
+        </composite:implementation>
+    </h:body>
+</html>

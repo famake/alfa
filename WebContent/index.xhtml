@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+	
+<h:head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+<title>Alfa</title>
+<link rel="stylesheet" type="text/css" href="css/style.css" />
+<link rel="stylesheet" href="css/font-awesome.min.css"/>
+
+</h:head>
+
+<h:body>
+<h:form>
+<p:dialog header="Rule saved" widgetVar="dlg2" modal="true" height="100">
+	<p:ajax event="close" listener="#{thingList.dialogClosed}" update="faboard ruleName"/>
+   <pre>
+   <h:outputText id="ruleText" value="#{thingList.rule}"/>
+   </pre>
+</p:dialog>
+	
+<div class="top">
+    <img src="icons/home_w.png"/>
+    <div class="header-right">
+	<p:inputText id="ruleName" placeholder="Rule name" value="#{thingList.ruleName}"/>
+	<p:commandButton value="save" action="#{thingList.save}" update="ruleText"/>
+	<div>
+	<p:themeSwitcher style="width:150px">
+ 		<f:selectItems value="#{themeSwitcherView.themes}" />
+	</p:themeSwitcher>
+	</div>
+	</div> 
+</div>
+
+
+    
+	
+<div class="main">
+    <p:outputPanel id="menu" binding="#{thingList.menu}">
+	<!--  p:draggable for="clock" helper="clone" dashboard="faboard"/ -->
+	</p:outputPanel>
+	
+	<div>
+		<div class="column-header" title="All currently connected devices" id="things-header">'Things'</div>
+		<div class="column-header" title="When this happens" id="events-header">Events</div>
+		<div class="column-header" title="Check if this is true" id="conditions-header">Condition</div>
+		<div class="column-header" title="Then do this" id="actions-header">Action</div>
+	</div>
+	<div style="clear: both"/>
+    		<p:dashboard model="#{thingList.dashboardModel}" id="faboard"
+    			binding="#{thingList.dashboard}">
+			<p:ajax event="reorder" update="faboard" process="faboard"
+				listener="#{thingList.handleReorder}" />
+		
+			<p:panel id="clock" header="Time of day">
+				Select a time of day to trigger the rule(event), or select a period in which
+				the rule is active(condition).
+				<p:outputPanel rendered="#{thingList.clock.event}">
+					<p:selectManyButton value="#{thingList.clock.events[0].selectedDays}">
+						<f:selectItems value="#{thingList.clock.events[0].allDays}"/>
+						<p:ajax/>
+					</p:selectManyButton>
+					At this time: 
+					<p:calendar value="#{thingList.clock.events[0].time}" timeOnly="true"
+						pattern="HH:mm" >
+						<p:ajax event="dateSelect"/>
+					</p:calendar>
+					<div class="operator_outer"><div class="operator_inner">
+					<span class="fa fa-long-arrow-up"></span>
+					OR
+					<span class="fa fa-long-arrow-down"></span>
+					</div></div>
+				</p:outputPanel>
+				
+				<p:outputPanel rendered="#{thingList.clock.condition}">
+				<p:selectManyButton>
+				<p>Start day:
+					<p:selectManyButton value="#{thingList.clock.conditions[0].selectedDays}">
+						<f:selectItems value="#{thingList.clock.conditions[0].allDays}"/>
+						<p:ajax/>
+					</p:selectManyButton></p>
+				<p>Start time:
+					<p:calendar value="#{thingList.clock.conditions[0].startTime}" timeOnly="true"
+						pattern="HH:mm" >
+						<p:ajax event="dateSelect"/>
+					</p:calendar></p>
+				<p>End time:
+					<p:calendar value="#{thingList.clock.conditions[0].endTime}" timeOnly="true"
+						pattern="HH:mm" >
+						<p:ajax event="dateSelect"/>
+					</p:calendar></p>
+				</p:selectManyButton>
+				<div class="operator_outer"><div class="operator_inner">
+				<span class="fa fa-long-arrow-up"></span>
+				AND
+				<span class="fa fa-long-arrow-down"></span>
+				</div></div>
+				</p:outputPanel>
+			</p:panel>
+			
+			
+			<p:panel id="startup" header="System startup">
+				Event when the computer is started.
+				<p:outputPanel rendered="#{thingList.startup.event}">
+					(triggers on startup)
+					<div class="operator_outer"><div class="operator_inner">
+					<span class="fa fa-long-arrow-up"></span>
+					OR
+					<span class="fa fa-long-arrow-down"></span>
+					</div></div>
+				</p:outputPanel>
+			</p:panel>
+			
+			
+			<p:panel id="delay" header="Delay">
+				Wait between actions.
+				<p:outputPanel rendered="#{thingList.delay.action}">
+					Delay seconds: <p:inputText type="number" 
+						value="#{thingList.delay.actions[0].delay}">
+						<p:ajax event="keyup" />
+						<p:ajax event="change" />
+					</p:inputText>
+					<div class="operator_outer"><div class="operator_inner">
+					<span class="fa fa-long-arrow-down"></span>
+					BEFORE
+					<span class="fa fa-long-arrow-down"></span>
+					</div></div>
+				</p:outputPanel>
+			</p:panel>
+		</p:dashboard>
+		<p:growl autoUpdate="true" showDetail="true" />
+	</div>
+</h:form>
+</h:body>
+</html>
+
+
